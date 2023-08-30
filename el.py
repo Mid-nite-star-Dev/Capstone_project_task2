@@ -1,3 +1,4 @@
+#EXTRACTiNG THE DATA FILE FROM MS ACCESS DATABASE
 import pyodbc
 import pandas as pd
 pyodbc.drivers()
@@ -13,7 +14,7 @@ table_names = [table.table_name for table in cursor.tables(tableType="TABLE")]
 for name in table_names:
     print(name)
 
-
+#Converting the data file to a pandas dataframe
 def query_accessdb_table(query, conn):
     table_result = pd.read_sql(query, conn)
     return table_result
@@ -24,7 +25,7 @@ SELECT * FROM "Wpi Data"
 table_result = query_accessdb_table(query, conn)
 print(table_result)
 
-#l0ading to the postgres database
+#loading the data file to the postgres database
 
 from sqlalchemy import create_engine
 engine = create_engine('postgresql://postgres:01ajstyles@localhost:5432/World_Port_Index_Data_Migration')
@@ -76,13 +77,12 @@ def nearest_ports_to_jurong_island():
 
     # Execute the query and fetch the result into a DataFrame
     result = pd.read_sql_query(sql_query, conn)
-
-    # Close the connection
+ # Closing the connection to the PostgreSQL database
     conn.close()
 
     return result
 
-# Call the function to find and display the nearest ports to JURONG ISLAND
+# Calling the function with a variable name to print the query result
 nearest_ports = nearest_ports_to_jurong_island()
 print(nearest_ports)
 
@@ -120,10 +120,10 @@ def largest_cargo_wharf_ports():
     """
     # Execute the query and fetch the result into a DataFrame
     result_2 = pd.read_sql_query(sql_query, conn)
-    # Close the connection
+    # Closing the connection to the PostgreSQL database
     conn.close()
     return result_2
-# Call the function to find and display the country with the largest number of cargo wharf ports
+# Calling the function with a variable name to print the query result
 largest_cargo_country = largest_cargo_wharf_ports()
 print(largest_cargo_country)
 
@@ -134,38 +134,54 @@ print(largest_cargo_country)
 #provisions, water, fuel oil, and diesel. Your solution should encompass 'country',
 #'port_name', 'port_latitude', and 'port_longitude'.
 
+# This connection will be used to run queries on the PostgreSQL database
 import psycopg2
 import pandas as pd
+
 def nearest_provision_ports(latitude, longitude):
+
     # Connect to the PostgreSQL database
-     conn = psycopg2.connect(
+    conn = psycopg2.connect(
         dbname="World_Port_Index_Data_Migration",
         user="postgres",
-        password={"My_password"},
+        password="01ajstyles",
         host="localhost",
         port="5432"
     )
+
     # Run SQL query to find the nearest port with provisions, water, fuel_oil, and diesel.
     sql_query = f"""
-    SELECT "Wpi_country_code" AS country, "Main_port_name" AS port_name, "Latitude_degrees" AS port_latitude, "Longitude_degrees" AS port_longitude,
-        (6371000 *
+    SELECT
+        "Wpi_country_code" AS country,
+        "Main_port_name" AS port_name,
+        "Latitude_degrees" AS port_latitude,
+        "Longitude_degrees" AS port_longitude,
+        (
+            6371000 *
             acos(
                 cos(radians({latitude})) * cos(radians("Latitude_degrees")) * cos(radians("Longitude_degrees") - radians({longitude})) +
                 sin(radians({latitude})) * sin(radians("Latitude_degrees"))
             )
         ) AS distance_in_meters
-    FROM "World_Port_IndexS"
-    WHERE "Supplies_provisions" = 'Y' AND "Supplies_water" = 'Y'
-    AND "Supplies_fuel_oil" = 'Y' AND "Supplies_diesel_oil" = 'Y'
-    ORDER BY distance_in_meters
+    FROM
+        "World_Port_Index"
+    WHERE
+        "Supplies_provisions" = 'Y' AND "Supplies_water" = 'Y'
+        AND "Supplies_fuel_oil" = 'Y' AND "Supplies_diesel_oil" = 'Y'
+    ORDER BY
+        distance_in_meters
     LIMIT 1;
     """
+
     # Execute the query and fetch the result into a DataFrame
     result_3 = pd.read_sql_query(sql_query, conn)
-    # Close the connection
+
+    # Closing the connection to the PostgreSQL database
     conn.close()
+
     return result_3
-# Call the function to find and display the nearest port with provisions, water, fuel_oil, and diesel
+
+# Calling the function with a variable name to print the query result
 latitude = 32.610982
 longitude = -38.706256
 provision_ports = nearest_provision_ports(latitude, longitude)
